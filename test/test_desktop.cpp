@@ -142,7 +142,13 @@ int main() {
     std::string cmd;
 
     std::cout << "=== SIMULADOR DE ASSISTENTE (DESKTOP) ===\n";
-    std::cout << "Comandos: tasks | notes | events | add-task <tit> | add-event <tit> | <YY-MM-DD> | set-now <YY-MM-DD> | exit\n\n";
+    std::cout << "Comandos principais:\n";
+    std::cout << "  tasks | notes | events\n";
+    std::cout << "  add-task <tit>\n";
+    std::cout << "  add-event <tit> | <YY-MM-DD>\n";
+    std::cout << "  add-bday <tit> | <MM-DD>       <-- Opção de Aniversário aqui!\n";
+    std::cout << "  set-now <YY-MM-DD>\n";
+    std::cout << "  exit\n\n";
 
     while (true) {
         std::cout << "> ";

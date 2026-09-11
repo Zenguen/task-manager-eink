@@ -123,17 +123,27 @@ public:
             for (const auto &e : events) {
                 long days = getDaysUntil(e.id);
                 std::string daysStr = (days == -9999) ? "???" : (days < 0 ? "PASSOU" : std::to_string(days) + " dias");
-                std::string tipo = e.annual ? "Aniv" : "Pont"; // Mostra se é Aniversário ou Pontual
+                std::string tipo = e.annual ? "Aniv" : "Pont"; 
+                
+                // --- MÁGICA VISUAL DO ANO AQUI ---
+                int displayYear = e.targetDate.year;
+                if (e.annual) {
+                    SimpleDate thisYearDate(simulatedNow.year, e.targetDate.month, e.targetDate.day);
+                    if (thisYearDate.toTotalDays() < simulatedNow.toTotalDays()) {
+                        displayYear = simulatedNow.year + 1; // Já passou, exibe o ano que vem!
+                    } else {
+                        displayYear = simulatedNow.year; // Ainda vai acontecer este ano.
+                    }
+                }
                 
                 std::cout << "#" << e.id << "  | " << tipo << " | "
-                          << e.targetDate.year << "-" << (e.targetDate.month < 10 ? "0" : "") << e.targetDate.month << "-" << (e.targetDate.day < 10 ? "0" : "") << e.targetDate.day << " | "
+                          << displayYear << "-" << (e.targetDate.month < 10 ? "0" : "") << e.targetDate.month << "-" << (e.targetDate.day < 10 ? "0" : "") << e.targetDate.day << " | "
                           << (daysStr.length() < 8 ? daysStr + "  " : daysStr) << " | " 
                           << e.title << "\n";
             }
         }
         std::cout << "-------------------------------------------------------------\n\n";
     }
-};
 // ==================== PROGRAMA PRINCIPAL ====================
 int main() {
     TaskManagerDesktop taskMgr;

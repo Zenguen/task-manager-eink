@@ -144,6 +144,7 @@ public:
         }
         std::cout << "-------------------------------------------------------------\n\n";
     }
+};
 // ==================== PROGRAMA PRINCIPAL ====================
 int main() {
     TaskManagerDesktop taskMgr;
@@ -186,6 +187,24 @@ int main() {
             std::cout << "[OK] Tarefa #" << id << " criada!\n";
             taskMgr.printTasks();
         }         
+        else if (cmd.rfind("add-event ", 0) == 0) {
+            std::string full = cmd.substr(10);
+            size_t pipePos = full.find('|');
+            if (pipePos != std::string::npos) {
+                std::string title = full.substr(0, pipePos);
+                std::string dateStr = full.substr(pipePos + 1);
+                while(!title.empty() && title.back() == ' ') title.pop_back();
+                while(!dateStr.empty() && dateStr.front() == ' ') dateStr.erase(0, 1);
+                
+                uint32_t id = eventMgr.addEvent(title, parseDateStr(dateStr));
+                if (id > 0) {
+                    std::cout << "[OK] Evento #" << id << " criado!\n";
+                    eventMgr.printEvents();
+                } else {
+                    std::cout << "[ERRO] Falha ao criar evento. Verifique a data.\n";
+                }
+            } else { std::cout << "[ERRO] Formato: add-event <titulo> | YYYY-MM-DD\n"; }
+        }
         else if (cmd.rfind("add-bday ", 0) == 0) {
             std::string full = cmd.substr(9);
             size_t pipePos = full.find('|');

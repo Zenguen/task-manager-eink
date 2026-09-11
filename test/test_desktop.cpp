@@ -51,6 +51,15 @@ public:
         }
         std::cout << "-----------------------------------------\n\n";
     }
+    bool deleteTask(uint32_t id) {
+        for (auto it = tasks.begin(); it != tasks.end(); ++it) {
+            if (it->id == id) {
+                tasks.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 class NoteManagerDesktop {
@@ -144,6 +153,15 @@ public:
         }
         std::cout << "-------------------------------------------------------------\n\n";
     }
+    bool deleteEvent(uint32_t id) {
+        for (auto it = events.begin(); it != events.end(); ++it) {
+            if (it->id == id) {
+                events.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
 };
 // ==================== PROGRAMA PRINCIPAL ====================
 int main() {
@@ -155,9 +173,9 @@ int main() {
     std::cout << "=== SIMULADOR DE ASSISTENTE (DESKTOP) ===\n";
     std::cout << "Comandos principais:\n";
     std::cout << "  tasks | notes | events\n";
-    std::cout << "  add-task <tit>\n";
-    std::cout << "  add-event <tit> | <YY-MM-DD>\n";
-    std::cout << "  add-bday <tit> | <MM-DD>       <-- Opção de Aniversário aqui!\n";
+    std::cout << "  add-task <tit>               | del-task <id>\n";
+    std::cout << "  add-event <tit> | <YY-MM-DD> | del-event <id>\n";
+    std::cout << "  add-bday <tit> | <MM-DD>\n";
     std::cout << "  set-now <YY-MM-DD>\n";
     std::cout << "  exit\n\n";
 

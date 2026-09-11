@@ -205,6 +205,36 @@ int main() {
             std::cout << "[OK] Tarefa #" << id << " criada!\n";
             taskMgr.printTasks();
         }         
+        
+        // ---> ADICIONE ESTES BLOCOS <---
+        else if (cmd.rfind("del-task ", 0) == 0) {
+            try {
+                uint32_t id = std::stoi(cmd.substr(9));
+                if (taskMgr.deleteTask(id)) { std::cout << "[OK] Tarefa #" << id << " apagada!\n"; taskMgr.printTasks(); }
+                else { std::cout << "[ERRO] Tarefa nao encontrada.\n"; }
+            } catch (...) { std::cout << "[ERRO] Use: del-task <id>\n"; }
+        }
+        else if (cmd.rfind("toggle-task ", 0) == 0) {
+            try {
+                uint32_t id = std::stoi(cmd.substr(13));
+                if (taskMgr.toggleTask(id)) { std::cout << "[OK] Tarefa #" << id << " concluida!\n"; taskMgr.printTasks(); }
+                else { std::cout << "[ERRO] Tarefa nao encontrada.\n"; }
+            } catch (...) { std::cout << "[ERRO] Use: del-task <id>\n"; }
+        }
+        else if (cmd.rfind("del-note ", 0) == 0) {
+            try {
+                uint32_t id = std::stoi(cmd.substr(9));
+                if (noteMgr.deleteNote(id)) { std::cout << "[OK] Nota #" << id << " apagada!\n"; noteMgr.printNotes(); }
+                else { std::cout << "[ERRO] Nota nao encontrada.\n"; }
+            } catch (...) { std::cout << "[ERRO] Use: del-note <id>\n"; }
+        }
+        else if (cmd.rfind("del-event ", 0) == 0) {
+            try {
+                uint32_t id = std::stoi(cmd.substr(10));
+                if (eventMgr.deleteEvent(id)) { std::cout << "[OK] Evento/Aniversario #" << id << " apagado!\n"; eventMgr.printEvents(); }
+                else { std::cout << "[ERRO] Evento nao encontrado.\n"; }
+            } catch (...) { std::cout << "[ERRO] Use: del-event <id>\n"; }
+        }
         else if (cmd.rfind("add-event ", 0) == 0) {
             std::string full = cmd.substr(10);
             size_t pipePos = full.find('|');

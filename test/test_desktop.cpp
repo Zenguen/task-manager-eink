@@ -83,39 +83,57 @@ private:
     std::vector<Event> events;
     uint32_t nextId = 1;
 public:
-    uint32_t addEvent(const std::string &title, SimpleDate date) {
-        if (date.year == 0) return 0;
-        events.emplace_back(nextId, title, date);
+    // Agora aceita a flag isAnnual (padrão é false)
+    uint32_t addEvent(const std::string &title, SimpleDate date, bool isAnnual = false) {
+        if (date.year == 0 && !isAnnual) return 0;
+        events.emplace_back(nextId, title, date, isAnnual);
         return nextId++;
     }
 
     long getDaysUntil(uint32_t id) const {
         for (const auto &e : events) {
             if (e.id == id) {
-                return e.targetDate.toTotalDays() - simulatedNow.toTotalDays();
+                if (!e.annual) {
+                    // Evento normal (Pontual): Calcula a diferença direta
+                    return e.targetDate.toTotalDays() - simulatedNow.toTotalDays();
+                } else {
+                    // Evento Circular (Aniversário)
+                    // Passo 1: Monta a data do evento com o ano ATUAL
+                    SimpleDate thisYearDate(simulatedNow.year, e.targetDate.month, e.targetDate.day);
+                    long diff = thisYearDate.toTotalDays() - simulatedNow.toTotalDays();
+                    
+                    // Passo 2: Se deu negativo, o aniversário já passou este ano. 
+                    // Recalcula somando +1 no ano!
+                    if (diff < 0) {
+                        SimpleDate nextYearDate(simulatedNow.year + 1, e.targetDate.month, e.targetDate.day);
+                        return nextYearDate.toTotalDays() - simulatedNow.toTotalDays();
+                    }
+                    return diff; // Se não deu negativo, o aniversário ainda vai chegar este ano
+                }
             }
         }
         return -9999;
     }
 
     void printEvents() const {
-        std::cout << "\n--- CALENDARIO DE EVENTOS (Tempo: Mock) ---\n";
-        std::cout << "ID  | Data        | Faltam   | Titulo\n";
-        std::cout << "----+-------------+----------+----------------------------\n";
+        std::cout << "\n--- CALENDARIO DE EVENTOS E ANIVERSARIOS ---\n";
+        std::cout << "ID  | Tipo | Data        | Faltam   | Titulo\n";
+        std::cout << "----+------+-------------+----------+----------------------------\n";
         if (events.empty()) { std::cout << "(Vazio)\n"; } else {
             for (const auto &e : events) {
                 long days = getDaysUntil(e.id);
                 std::string daysStr = (days == -9999) ? "???" : (days < 0 ? "PASSOU" : std::to_string(days) + " dias");
-                std::cout << "#" << e.id << "  | " 
+                std::string tipo = e.annual ? "Aniv" : "Pont"; // Mostra se é Aniversário ou Pontual
+                
+                std::cout << "#" << e.id << "  | " << tipo << " | "
                           << e.targetDate.year << "-" << (e.targetDate.month < 10 ? "0" : "") << e.targetDate.month << "-" << (e.targetDate.day < 10 ? "0" : "") << e.targetDate.day << " | "
                           << (daysStr.length() < 8 ? daysStr + "  " : daysStr) << " | " 
                           << e.title << "\n";
             }
         }
-        std::cout << "---------------------------------------------------------\n\n";
+        std::cout << "-------------------------------------------------------------\n\n";
     }
 };
-
 // ==================== PROGRAMA PRINCIPAL ====================
 int main() {
     TaskManagerDesktop taskMgr;
@@ -153,7 +171,10 @@ int main() {
             taskMgr.printTasks();
         } 
         else if (cmd.rfind("add-event ", 0) == 0) {
-            std::string full = cmd.substr(10);
+            // ... (código existente do add-event) ...
+        
+        else if (cmd.rfind("add-bday ", 0) == 0) {
+            std::string full = cmd.substr(9);
             size_t pipePos = full.find('|');
             if (pipePos != std::string::npos) {
                 std::string title = full.substr(0, pipePos);
@@ -161,14 +182,20 @@ int main() {
                 while(!title.empty() && title.back() == ' ') title.pop_back();
                 while(!dateStr.empty() && dateStr.front() == ' ') dateStr.erase(0, 1);
                 
-                uint32_t id = eventMgr.addEvent(title, parseDateStr(dateStr));
-                if (id > 0) {
-                    std::cout << "[OK] Evento #" << id << " criado!\n";
-                    eventMgr.printEvents();
-                } else {
-                    std::cout << "[ERRO] Falha ao criar evento.\n";
-                }
-            } else { std::cout << "[ERRO] Formato: add-event <titulo> | YYYY-MM-DD\n"; }
+                // Extrai apenas MM-DD. O ano que a pessoa nasceu (ex: 2000) não importa
+                // para o cálculo circular, pois sempre usaremos o ano atual.
+                try {
+                    int m = std::stoi(dateStr.substr(0, 2));
+                    int d = std::stoi(dateStr.substr(3, 2));
+                    
+                    uint32_t id = eventMgr.addEvent(title, SimpleDate(2000, m, d), true);
+                    if (id > 0) {
+                        std::cout << "[OK] Aniversario #" << id << " criado!\n";
+                        eventMgr.printEvents();
+                    }
+                } catch (...) { std::cout << "[ERRO] Use formato: MM-DD\n"; }
+            } else { std::cout << "[ERRO] Formato: add-bday <titulo> | MM-DD\n"; }
+        // ... (código existente de comando não reconhecido) ...
         }
         else if (!cmd.empty()) { std::cout << "[ERRO] Comando nao reconhecido.\n"; }
     }

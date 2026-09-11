@@ -169,10 +169,7 @@ int main() {
             uint32_t id = taskMgr.addTask(title);
             std::cout << "[OK] Tarefa #" << id << " criada!\n";
             taskMgr.printTasks();
-        } 
-        else if (cmd.rfind("add-event ", 0) == 0) {
-            // ... (código existente do add-event) ...
-        
+        }         
         else if (cmd.rfind("add-bday ", 0) == 0) {
             std::string full = cmd.substr(9);
             size_t pipePos = full.find('|');

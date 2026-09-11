@@ -1,6 +1,6 @@
 #pragma once
-#include <Arduino.h>
-#include <vector>
+#include <string>
+#include <cstdint>
 
 enum class Priority {
     PRIORITY_LOW,
@@ -10,11 +10,10 @@ enum class Priority {
 
 struct Task {
     uint32_t id;
-    String title;
+    std::string title;
     bool completed;
     Priority priority;
-    std::vector<uint32_t> dependencyIds;
 
-    Task(uint32_t id, const String &title, Priority priority = Priority::PRIORITY_MEDIUM)
+    Task(uint32_t id, const std::string &title, Priority priority = Priority::PRIORITY_MEDIUM)
         : id(id), title(title), completed(false), priority(priority) {}
 };

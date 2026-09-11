@@ -3,6 +3,7 @@
 #include "StorageService.h"
 #include <ArduinoJson.h>
 #include <vector>
+#include <string>
 
 class TaskManager {
 private:
@@ -11,8 +12,8 @@ private:
     const char *filePath = "/tasks.json";
 
 public:
-    uint32_t addTask(const String &title, Priority priority = Priority::PRIORITY_MEDIUM) {
-        tasks.emplace_back(nextId, title, priority);
+    uint32_t addTask(const std::string &title) {
+        tasks.emplace_back(nextId, title);
         uint32_t createdId = nextId++;
         saveToFile();
         return createdId;
@@ -29,6 +30,17 @@ public:
         return false;
     }
 
+    bool deleteTask(uint32_t id) {
+        for (auto it = tasks.begin(); it != tasks.end(); ++it) {
+            if (it->id == id) {
+                tasks.erase(it);
+                saveToFile();
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool saveToFile() {
         JsonDocument doc;
         JsonArray array = doc.to<JsonArray>();
@@ -36,27 +48,24 @@ public:
         for (const auto &task : tasks) {
             JsonObject obj = array.add<JsonObject>();
             obj["id"] = task.id;
-            obj["title"] = task.title;
+            obj["title"] = task.title; // ArduinoJson converte std::string sozinho aqui
             obj["completed"] = task.completed;
             obj["priority"] = static_cast<int>(task.priority);
         }
 
-        String jsonOutput;
+        String jsonOutput; // Mantemos o String do Arduino aqui pro StorageService
         serializeJson(doc, jsonOutput);
         return StorageService::writeString(filePath, jsonOutput);
     }
 
     bool loadFromFile() {
         String jsonInput = StorageService::readString(filePath);
-        if (jsonInput.isEmpty()) {
-            Serial.println("[TASK] Nenhum dado salvo encontrado. Lista inicializada vazia.");
-            return false;
-        }
+        if (jsonInput.isEmpty()) return false;
 
         JsonDocument doc;
         DeserializationError error = deserializeJson(doc, jsonInput);
         if (error) {
-            Serial.printf("[TASK] Falha ao ler JSON: %s\n", error.c_str());
+            Serial.printf("[TASK] Falha ao desserializar JSON: %s\n", error.c_str());
             return false;
         }
 
@@ -65,28 +74,23 @@ public:
 
         for (JsonObject obj : doc.as<JsonArray>()) {
             uint32_t id = obj["id"];
-            String title = obj["title"];
-            Priority priority = static_cast<Priority>(obj["priority"] | 1);
+            // Aqui forçamos a leitura como std::string nativa do C++
+            std::string title = obj["title"].as<std::string>(); 
+            bool completed = obj["completed"] | false;
+            int prioInt = obj["priority"] | static_cast<int>(Priority::PRIORITY_MEDIUM);
 
-            Task task(id, title, priority);
-            task.completed = obj["completed"] | false;
-            tasks.push_back(task);
+            Task t(id, title, static_cast<Priority>(prioInt));
+            t.completed = completed;
+            tasks.push_back(t);
 
-            if (id > highestId) {
-                highestId = id;
-            }
+            if (id > highestId) highestId = id;
         }
 
         nextId = highestId + 1;
-        Serial.printf("[TASK] %u tarefas carregadas da Flash com sucesso.\n", tasks.size());
+        Serial.printf("[TASK] %u tarefas carregadas.\n", tasks.size());
         return true;
     }
 
-    const std::vector<Task>& getTasks() const {
-        return tasks;
-    }
-
-    size_t count() const {
-        return tasks.size();
-    }
+    const std::vector<Task>& getTasks() const { return tasks; }
+    size_t count() const { return tasks.size(); }
 };

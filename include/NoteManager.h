@@ -3,6 +3,7 @@
 #include "StorageService.h"
 #include <ArduinoJson.h>
 #include <vector>
+#include <string>
 
 class NoteManager {
 private:
@@ -11,14 +12,14 @@ private:
     const char *filePath = "/notes.json";
 
 public:
-    uint32_t addNote(const String &title, const String &content = "") {
+    uint32_t addNote(const std::string &title, const std::string &content = "") {
         notes.emplace_back(nextId, title, content);
         uint32_t createdId = nextId++;
         saveToFile();
         return createdId;
     }
 
-    bool updateNote(uint32_t id, const String &newTitle, const String &newContent) {
+    bool updateNote(uint32_t id, const std::string &newTitle, const std::string &newContent) {
         for (auto &note : notes) {
             if (note.id == id) {
                 note.title = newTitle;
@@ -66,14 +67,12 @@ public:
 
     bool loadFromFile() {
         String jsonInput = StorageService::readString(filePath);
-        if (jsonInput.isEmpty()) {
-            return false;
-        }
+        if (jsonInput.isEmpty()) return false;
 
         JsonDocument doc;
         DeserializationError error = deserializeJson(doc, jsonInput);
         if (error) {
-            Serial.printf("[NOTE] Falha ao desserializar JSON: %s\n", error.c_str());
+            Serial.printf("[NOTE] Falha: %s\n", error.c_str());
             return false;
         }
 
@@ -82,23 +81,18 @@ public:
 
         for (JsonObject obj : doc.as<JsonArray>()) {
             uint32_t id = obj["id"];
-            String title = obj["title"];
-            String content = obj["content"] | "";
+            std::string title = obj["title"].as<std::string>();
+            std::string content = obj["content"] | "";
 
             notes.emplace_back(id, title, content);
             if (id > highestId) highestId = id;
         }
 
         nextId = highestId + 1;
-        Serial.printf("[NOTE] %u notas carregadas da Flash.\n", notes.size());
+        Serial.printf("[NOTE] %u notas carregadas.\n", notes.size());
         return true;
     }
 
-    const std::vector<Note>& getNotes() const {
-        return notes;
-    }
-
-    size_t count() const {
-        return notes.size();
-    }
+    const std::vector<Note>& getNotes() const { return notes; }
+    size_t count() const { return notes.size(); }
 };

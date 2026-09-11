@@ -216,7 +216,7 @@ int main() {
         }
         else if (cmd.rfind("toggle-task ", 0) == 0) {
             try {
-                uint32_t id = std::stoi(cmd.substr(13));
+                uint32_t id = std::stoi(cmd.substr(12));
                 if (taskMgr.toggleTask(id)) { std::cout << "[OK] Tarefa #" << id << " concluida!\n"; taskMgr.printTasks(); }
                 else { std::cout << "[ERRO] Tarefa nao encontrada.\n"; }
             } catch (...) { std::cout << "[ERRO] Use: del-task <id>\n"; }
